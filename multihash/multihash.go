@@ -17,17 +17,17 @@ func New(hash hash.Hash64) *MultiHash {
 	}
 }
 
-func hashPadding(n int) []byte {
+func hashPadding(n uint64) []byte {
 	buf := make([]byte, 4)
-	binary.PutVarint(buf, int64(n))
+	binary.PutUvarint(buf, n)
 	return buf
 }
 
-func payloadsWithPadding(b []byte, n int) [][]byte {
+func payloadsWithPadding(b []byte, n uint64) [][]byte {
 	payloads := make([][]byte, 0)
 	size := len(b)
 
-	for i := 0; i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		c := make([]byte, size)
 		copy(c, b)
 		c = append(c, hashPadding(i)...)
@@ -44,7 +44,7 @@ func (m *MultiHash) hashSingle(b []byte) uint64 {
 	return m.hash.Sum64()
 }
 
-func (m *MultiHash) Hash(b []byte, n int) []uint64 {
+func (m *MultiHash) Hash(b []byte, n uint64) []uint64 {
 	hashes := make([]uint64, 0)
 	payloads := payloadsWithPadding(b, n)
 
