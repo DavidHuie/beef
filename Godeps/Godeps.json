@@ -4,5 +4,11 @@
 	"Packages": [
 		"./..."
 	],
-	"Deps": []
+	"Deps": [
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.0-43-gcf33c9e",
+			"Rev": "cf33c9e0ca0a23509b8bb8edfc63e4776bb1a330"
+		}
+	]
 }
