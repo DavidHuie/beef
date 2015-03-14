@@ -1,4 +1,4 @@
-package server
+package beef
 
 import (
 	"errors"
@@ -14,21 +14,17 @@ var (
 	ErrBFAlreadyExists = errors.New("bloom filter exists")
 )
 
-type Server struct {
-	db *bolt.DB
-}
-
 func bucketNameForBF(name string) []byte {
 	return []byte(fmt.Sprintf("bf:%v", name))
 }
 
-func (s *Server) InsertBloomFilter(tx *bolt.Tx, name string, value []byte) error {
+func InsertBloomFilter(tx *bolt.Tx, name string, value []byte) error {
 	b := tx.Bucket(bucketNameForBF(name))
 	if b == nil {
 		return ErrBFMissing
 	}
 
-	metadata, err := s.GetMetadata(b)
+	metadata, err := GetMetadata(b)
 	if err != nil {
 		return err
 	}
@@ -45,20 +41,20 @@ func (s *Server) InsertBloomFilter(tx *bolt.Tx, name string, value []byte) error
 	}
 
 	metadata.InsertCount += 1
-	if err := s.SetMetadata(b, metadata); err != nil {
+	if err := SetMetadata(b, metadata); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Server) CheckBloomFilter(tx *bolt.Tx, name string, value []byte) (bool, error) {
+func CheckBloomFilter(tx *bolt.Tx, name string, value []byte) (bool, error) {
 	b := tx.Bucket(bucketNameForBF(name))
 	if b == nil {
 		return false, ErrBFMissing
 	}
 
-	metadata, err := s.GetMetadata(b)
+	metadata, err := GetMetadata(b)
 	if err != nil {
 		return false, err
 	}
@@ -78,7 +74,7 @@ func (s *Server) CheckBloomFilter(tx *bolt.Tx, name string, value []byte) (bool,
 	return check, err
 }
 
-func (s *Server) CreateBloomFilter(tx *bolt.Tx, name string, numHashFunctions, size uint64) error {
+func CreateBloomFilter(tx *bolt.Tx, name string, numHashFunctions, size uint64) error {
 	b := tx.Bucket([]byte(name))
 	if b != nil {
 		return ErrBFAlreadyExists
@@ -101,7 +97,7 @@ func (s *Server) CreateBloomFilter(tx *bolt.Tx, name string, numHashFunctions, s
 	return nil
 }
 
-func (s *Server) DeleteBloomFilter(tx *bolt.Tx, name string) error {
+func DeleteBloomFilter(tx *bolt.Tx, name string) error {
 	b := tx.Bucket(bucketNameForBF(name))
 	if b == nil {
 		return ErrBFMissing

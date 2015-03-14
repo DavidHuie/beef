@@ -1,4 +1,4 @@
-package server
+package beef
 
 import (
 	"encoding/json"
@@ -45,7 +45,7 @@ func NewMetadata(numHashFunctions, size uint64) *Metadata {
 	return m
 }
 
-func (s *Server) GetMetadata(bucket *bolt.Bucket) (*Metadata, error) {
+func GetMetadata(bucket *bolt.Bucket) (*Metadata, error) {
 	var metadataBytes []byte
 
 	metadataBytes = bucket.Get(metadataDbKey)
@@ -63,7 +63,7 @@ func (s *Server) GetMetadata(bucket *bolt.Bucket) (*Metadata, error) {
 	return &metadata, nil
 }
 
-func (s *Server) SetMetadata(bucket *bolt.Bucket, metadata *Metadata) error {
+func SetMetadata(bucket *bolt.Bucket, metadata *Metadata) error {
 	serialized, err := metadata.serialize()
 	if err != nil {
 		return err
