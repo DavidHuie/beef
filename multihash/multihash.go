@@ -1,20 +1,9 @@
 package multihash
 
-import (
-	"encoding/binary"
-	"hash"
-)
+import "encoding/binary"
 
-// Uses a hash function to apply generate n hashes
-// for a given payload
-type MultiHash struct {
-	hash hash.Hash64
-}
-
-func New(hash hash.Hash64) *MultiHash {
-	return &MultiHash{
-		hash,
-	}
+type Interface interface {
+	HashSingle([]byte) uint64
 }
 
 func hashPadding(n uint64) []byte {
@@ -37,19 +26,12 @@ func payloadsWithPadding(b []byte, n uint64) [][]byte {
 	return payloads
 }
 
-func (m *MultiHash) hashSingle(b []byte) uint64 {
-	m.hash.Reset()
-	m.hash.Write(b)
-
-	return m.hash.Sum64()
-}
-
-func (m *MultiHash) Hash(b []byte, n uint64) []uint64 {
+func Hash(i Interface, value []byte, numHashes uint64) []uint64 {
 	hashes := make([]uint64, 0)
-	payloads := payloadsWithPadding(b, n)
+	payloads := payloadsWithPadding(value, numHashes)
 
 	for _, payload := range payloads {
-		hashes = append(hashes, m.hashSingle(payload))
+		hashes = append(hashes, i.HashSingle(payload))
 	}
 
 	return hashes
