@@ -1,10 +1,9 @@
 package multihash
 
-import "encoding/binary"
-
-type Interface interface {
-	HashSingle([]byte) uint64
-}
+import (
+	"encoding/binary"
+	"hash"
+)
 
 func hashPadding(n uint64) []byte {
 	buf := make([]byte, 4)
@@ -26,12 +25,16 @@ func payloadsWithPadding(b []byte, n uint64) [][]byte {
 	return payloads
 }
 
-func Hash(i Interface, value []byte, numHashes uint64) []uint64 {
+func Hash(h hash.Hash64, value []byte, numHashes uint64) []uint64 {
 	hashes := make([]uint64, 0)
 	payloads := payloadsWithPadding(value, numHashes)
 
 	for _, payload := range payloads {
-		hashes = append(hashes, i.HashSingle(payload))
+		h.Reset()
+		h.Write(payload)
+		hash := h.Sum64()
+
+		hashes = append(hashes, hash)
 	}
 
 	return hashes

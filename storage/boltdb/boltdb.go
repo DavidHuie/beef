@@ -1,9 +1,13 @@
 package boltdb
 
-import "github.com/boltdb/bolt"
+import "github.com/DavidHuie/beef/Godeps/_workspace/src/github.com/boltdb/bolt"
 
 type DB struct {
 	bucket *bolt.Bucket
+}
+
+func New(bucket *bolt.Bucket) *DB {
+	return &DB{bucket}
 }
 
 func (db *DB) GetBit(n uint64) (bool, error) {

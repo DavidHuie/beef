@@ -1,6 +1,10 @@
 package bloomfilter
 
-import "github.com/DavidHuie/beef/multihash"
+import (
+	"hash"
+
+	"github.com/DavidHuie/beef/multihash"
+)
 
 type Storage interface {
 	GetBit(uint64) (bool, error)
@@ -9,22 +13,22 @@ type Storage interface {
 
 type BF struct {
 	storage   Storage
-	mhash     multihash.Interface
+	hash      hash.Hash64
 	numHashes uint64
 	size      uint64
 }
 
-func New(storage Storage, mhash multihash.Interface, numHashes uint64, size uint64) *BF {
+func New(storage Storage, hash hash.Hash64, numHashes uint64, size uint64) *BF {
 	return &BF{
 		storage,
-		mhash,
+		hash,
 		numHashes,
 		size,
 	}
 }
 
 func (b *BF) Insert(v []byte) error {
-	hashes := multihash.Hash(b.mhash, v, b.numHashes)
+	hashes := multihash.Hash(b.hash, v, b.numHashes)
 
 	for _, hash := range hashes {
 		index := hash % b.size
@@ -37,7 +41,7 @@ func (b *BF) Insert(v []byte) error {
 }
 
 func (b *BF) Check(v []byte) (bool, error) {
-	hashes := multihash.Hash(b.mhash, v, b.numHashes)
+	hashes := multihash.Hash(b.hash, v, b.numHashes)
 
 	for _, hash := range hashes {
 		index := hash % b.size

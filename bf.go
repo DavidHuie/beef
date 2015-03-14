@@ -2,7 +2,7 @@ package beef
 
 import "github.com/DavidHuie/beef/Godeps/_workspace/src/github.com/boltdb/bolt"
 
-func createBf(tx *bolt.Tx, name string, hashFunction, numHashFunctions, size uint64) error {
+func CreateBf(tx *bolt.Tx, name string, hashFunction, numHashFunctions, size uint64) error {
 	// Check if bucket already exists
 	b := tx.Bucket([]byte(name))
 	if b != nil {
@@ -33,42 +33,6 @@ func createBf(tx *bolt.Tx, name string, hashFunction, numHashFunctions, size uin
 		}
 
 	}
-
-	return nil
-}
-
-func insertBf(tx *bolt.Tx, name string, value []byte) error {
-	b := tx.Bucket(bucketNameForBF(name))
-	if b == nil {
-		return ErrBFMissing
-	}
-
-	metadata, err := getMetadata(b)
-	if err != nil {
-		return err
-	}
-
-	hashes := metadata.hash.Hash(value, metadata.size)
-	for _, hash := range hashes {
-		index := hash % metadata.size
-		pageIndex, byteIndex, bitIndex := pageMetadata(index)
-
-		page, err := getPage(b, pageIndex)
-		if err != nil {
-			return err
-		}
-
-		byte := page[byteIndex]
-		byte = byte | 1<<bitIndex
-		page[byteIndex] = byte
-
-		if err := setPage(b, pageIndex, page); err != nil {
-			return err
-		}
-	}
-
-	metadata.InsertCount += 1
-	setMetadata(b, metadata)
 
 	return nil
 }

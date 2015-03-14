@@ -1,31 +1,43 @@
-package beef
+package server
 
 import (
 	"encoding/json"
+	"errors"
+	"hash"
 	"hash/fnv"
 
 	"github.com/DavidHuie/beef/Godeps/_workspace/src/github.com/boltdb/bolt"
-	"github.com/DavidHuie/beef/multihash"
+)
+
+var (
+	metadataDbKey = []byte("m")
+
+	ErrMetadataMissing = errors.New("metadata is missing")
 )
 
 type Metadata struct {
 	InsertCount      uint64
-	hash             *multihash.MultiHash
-	hashFunction     uint64
-	numHashFunctions uint64
-	size             uint64
+	NumHashFunctions uint64
+	Size             uint64
+
+	hash hash.Hash64
 }
 
-func NewMetadata(hashFunction, numHashFunctions, size uint64) *Metadata {
-	return &Metadata{
+func (m *Metadata) initialize() {
+	m.hash = fnv.New64()
+}
+
+func NewMetadata(numHashFunctions, size uint64) *Metadata {
+	m := &Metadata{
 		InsertCount:      0,
-		hashFunction:     hashFunction,
-		numHashFunctions: numHashFunctions,
-		size:             size,
+		NumHashFunctions: numHashFunctions,
+		Size:             size,
 	}
+	m.initialize()
+	return m
 }
 
-func getMetadata(bucket *bolt.Bucket) (*Metadata, error) {
+func (s *Server) GetMetadata(bucket *bolt.Bucket) (*Metadata, error) {
 	var metadataBytes []byte
 
 	metadataBytes = bucket.Get(metadataDbKey)
@@ -43,16 +55,12 @@ func getMetadata(bucket *bolt.Bucket) (*Metadata, error) {
 	return &metadata, nil
 }
 
-func setMetadata(bucket *bolt.Bucket, metadata *Metadata) error {
+func (s *Server) SetMetadata(bucket *bolt.Bucket, metadata *Metadata) error {
 	serialized, err := metadata.serialize()
 	if err != nil {
 		return err
 	}
 	return bucket.Put(metadataDbKey, serialized)
-}
-
-func (m *Metadata) initialize() {
-	m.hash = multihash.New(fnv.New64())
 }
 
 func (m *Metadata) serialize() ([]byte, error) {
@@ -61,8 +69,4 @@ func (m *Metadata) serialize() ([]byte, error) {
 		return nil, err
 	}
 	return bytes, nil
-}
-
-func (m *Metadata) pagesNeeded() uint64 {
-	return (m.size % pageSize) + 1
 }
