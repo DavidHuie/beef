@@ -27,6 +27,14 @@ func (m *Metadata) initialize() {
 	m.hash = fnv.New64()
 }
 
+func (m *Metadata) serialize() ([]byte, error) {
+	bytes, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
+}
+
 func NewMetadata(numHashFunctions, size uint64) *Metadata {
 	m := &Metadata{
 		InsertCount:      0,
@@ -61,12 +69,4 @@ func (s *Server) SetMetadata(bucket *bolt.Bucket, metadata *Metadata) error {
 		return err
 	}
 	return bucket.Put(metadataDbKey, serialized)
-}
-
-func (m *Metadata) serialize() ([]byte, error) {
-	bytes, err := json.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-	return bytes, nil
 }

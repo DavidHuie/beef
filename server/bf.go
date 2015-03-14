@@ -10,20 +10,21 @@ import (
 )
 
 var (
-	ErrBFMissing = errors.New("bloom filter not found")
+	ErrBFMissing       = errors.New("bloom filter not found")
+	ErrBFAlreadyExists = errors.New("bloom filter exists")
 )
 
 func bucketNameForBF(name string) []byte {
 	return []byte(fmt.Sprintf("bf:%v", name))
 }
 
-func (s *Server) Insert(tx *bolt.Tx, name string, value []byte) error {
+func (s *Server) InsertBloomFilter(tx *bolt.Tx, name string, value []byte) error {
 	b := tx.Bucket(bucketNameForBF(name))
 	if b == nil {
 		return ErrBFMissing
 	}
 
-	metadata, err := GetMetadata(b)
+	metadata, err := s.GetMetadata(b)
 	if err != nil {
 		return err
 	}
@@ -40,20 +41,20 @@ func (s *Server) Insert(tx *bolt.Tx, name string, value []byte) error {
 	}
 
 	metadata.InsertCount += 1
-	if err := SetMetadata(b, metadata); err != nil {
+	if err := s.SetMetadata(b, metadata); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Server) Check(tx *bolt.Tx, name string, value []byte) (bool, error) {
+func (s *Server) CheckBloomFilter(tx *bolt.Tx, name string, value []byte) (bool, error) {
 	b := tx.Bucket(bucketNameForBF(name))
 	if b == nil {
 		return false, ErrBFMissing
 	}
 
-	metadata, err := GetMetadata(b)
+	metadata, err := s.GetMetadata(b)
 	if err != nil {
 		return false, err
 	}
@@ -71,4 +72,36 @@ func (s *Server) Check(tx *bolt.Tx, name string, value []byte) (bool, error) {
 	}
 
 	return check, err
+}
+
+func (s *Server) CreateBloomFilter(tx *bolt.Tx, name string, numHashFunctions, size uint64) error {
+	b := tx.Bucket([]byte(name))
+	if b != nil {
+		return ErrBFAlreadyExists
+	}
+
+	b, err := tx.CreateBucket(bucketNameForBF(name))
+	if err != nil {
+		return err
+	}
+
+	metadata := NewMetadata(numHashFunctions, size)
+	serializedMetadata, err := metadata.serialize()
+	if err != nil {
+		return err
+	}
+	if err := b.Put(metadataDbKey, serializedMetadata); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Server) DeleteBloomFilter(tx *bolt.Tx, name string) error {
+	b := tx.Bucket(bucketNameForBF(name))
+	if b == nil {
+		return ErrBFMissing
+	}
+
+	return tx.DeleteBucket(bucketNameForBF(name))
 }

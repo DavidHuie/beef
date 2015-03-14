@@ -2,15 +2,12 @@ package boltdb
 
 import (
 	"encoding/binary"
-	"errors"
 
 	"github.com/DavidHuie/beef/Godeps/_workspace/src/github.com/boltdb/bolt"
 )
 
 var (
 	PageSize = uint64(32) // bytes
-
-	ErrPageMissing = errors.New("page does not exist")
 )
 
 func SetPageSize(n uint64) {
@@ -33,12 +30,12 @@ func pageMetadata(index uint64) (uint64, uint64, uint64) {
 	return pageIndex, byteIndex, bitIndex
 }
 
-func getPage(bucket *bolt.Bucket, page uint64) ([]byte, error) {
+func getPage(bucket *bolt.Bucket, page uint64) []byte {
 	p := bucket.Get(pageKey(page))
 	if p == nil {
-		return nil, ErrPageMissing
+		return make([]byte, 8)
 	}
-	return p, nil
+	return p
 }
 
 func setPage(bucket *bolt.Bucket, page uint64, value []byte) error {
