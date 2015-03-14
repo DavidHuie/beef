@@ -14,6 +14,10 @@ var (
 	ErrBFAlreadyExists = errors.New("bloom filter exists")
 )
 
+type Server struct {
+	db *bolt.DB
+}
+
 func bucketNameForBF(name string) []byte {
 	return []byte(fmt.Sprintf("bf:%v", name))
 }
