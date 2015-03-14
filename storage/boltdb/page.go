@@ -37,7 +37,3 @@ func getPage(bucket *bolt.Bucket, page uint64) []byte {
 	}
 	return p
 }
-
-func setPage(bucket *bolt.Bucket, page uint64, value []byte) error {
-	return bucket.Put(pageKey(page), value)
-}
