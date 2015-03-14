@@ -7,8 +7,7 @@ import (
 
 func TestHash(t *testing.T) {
 	hash := fnv.New64()
-	mhash := New(hash)
-	hashes := mhash.Hash([]byte{1}, 10)
+	hashes := Hash(hash, []byte{1}, 10)
 
 	if len(hashes) != 10 {
 		t.Fatalf("invalid number of hashes returned: %v", len(hashes))

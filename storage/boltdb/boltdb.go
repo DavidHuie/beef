@@ -2,15 +2,15 @@ package boltdb
 
 import "github.com/DavidHuie/beef/Godeps/_workspace/src/github.com/boltdb/bolt"
 
-type DB struct {
+type Storage struct {
 	bucket *bolt.Bucket
 }
 
-func New(bucket *bolt.Bucket) *DB {
-	return &DB{bucket}
+func New(bucket *bolt.Bucket) *Storage {
+	return &Storage{bucket}
 }
 
-func (db *DB) GetBit(n uint64) (bool, error) {
+func (db *Storage) GetBit(n uint64) (bool, error) {
 	pageIndex, byteIndex, bitIndex := pageMetadata(n)
 	page := getPage(db.bucket, pageIndex)
 
@@ -19,7 +19,7 @@ func (db *DB) GetBit(n uint64) (bool, error) {
 	return byte == 1, nil
 }
 
-func (db *DB) SetBit(n uint64) error {
+func (db *Storage) SetBit(n uint64) error {
 	pageIndex, byteIndex, bitIndex := pageMetadata(n)
 	page := getPage(db.bucket, pageIndex)
 
