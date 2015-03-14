@@ -22,10 +22,10 @@ func pageKey(n uint64) []byte {
 }
 
 func pageMetadata(index uint64) (uint64, uint64, uint64) {
+	bitIndex := index % 8
 	globalByteIndex := index / 8
 	pageIndex := globalByteIndex / PageSize
 	byteIndex := globalByteIndex % PageSize
-	bitIndex := index % 8
 
 	return pageIndex, byteIndex, bitIndex
 }
