@@ -13,7 +13,6 @@ func New(bucket *bolt.Bucket) *Storage {
 func (db *Storage) GetBit(n uint64) (bool, error) {
 	pageIndex, byteIndex, bitIndex := pageMetadata(n)
 	page := getPage(db.bucket, pageIndex)
-
 	byte := (page[byteIndex] >> bitIndex) & 1
 
 	return byte == 1, nil

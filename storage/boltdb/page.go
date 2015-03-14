@@ -33,7 +33,7 @@ func pageMetadata(index uint64) (uint64, uint64, uint64) {
 func getPage(bucket *bolt.Bucket, page uint64) []byte {
 	p := bucket.Get(pageKey(page))
 	if p == nil {
-		return make([]byte, 8)
+		return make([]byte, PageSize)
 	}
 	return p
 }
